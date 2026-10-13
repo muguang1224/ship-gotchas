@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 内容仓库的依赖不是库，是别人家的文档。它们会在你不写代码的时候悄悄变化，
+    # 所以除了 push 触发，还必须定期跑一次——这是唯一能发现"引用过期"的方式。
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sources:
+    name: 校验所有引用
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 每个来源必须可达，且关键短语仍在页面上
+        run: node tools/check_sources.mjs
+      - name: sources.json 里每条都要有可校验的短语
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          data = json.loads(pathlib.Path("sources.json").read_text(encoding="utf-8"))
+          problems = []
+          for source in data["sources"]:
+              for key in ("id", "url", "mustContain", "usedBy", "claim"):
+                  if not source.get(key):
+                      problems.append(f"{source.get('id', '?')} 缺少字段 {key}")
+              if not str(source.get("url", "")).startswith("https://"):
+                  problems.append(f"{source.get('id')} 的 url 必须是 https")
+              if not source.get("mustContain"):
+                  problems.append(f"{source.get('id')} 没有 mustContain，等于没有校验")
+          if problems:
+              for line in problems:
+                  print("::error::" + line)
+              sys.exit(1)
+          print(f"sources.json 结构正确，共 {len(data['sources'])} 条")
+          PY
+      - name: README 里引用但未登记的链接
+        run: |
+          python - <<'PY'
+          import json, pathlib, re
+          data = json.loads(pathlib.Path("sources.json").read_text(encoding="utf-8"))
+          text = pathlib.Path("README.md").read_text(encoding="utf-8")
+          urls = set(re.findall(r"\]\((https://[^)\s]+)\)", text))
+          registered = {source["url"] for source in data["sources"]}
+          ignored = {item["url"] for item in data.get("ignoredLinks", [])}
+          stray = sorted(url for url in urls if url not in registered and url not in ignored)
+          if stray:
+              print("::warning::README 里有既未登记、也未豁免的链接——无法自动校验:")
+              for url in stray:
+                  print("  " + url)
+          covered = len(urls & registered)
+          print(f"README 引用链接 {len(urls)} 个：{covered} 个受校验、"
+                f"{len(urls & ignored)} 个显式豁免、{len(stray)} 个待处理")
+          PY

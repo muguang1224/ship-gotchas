@@ -1,0 +1,47 @@
+{
+  "_comment": "每个来源都要同时满足两条：链接可达，且 mustContain 里至少一个短语仍然出现在页面上。短语消失意味着官方改了说法，对应条目需要重新核实。改这个文件时请让短语尽量短且无引号（避免 HTML 实体转换带来的假失败）。",
+  "_ignoredLinks": "README 里出现但不需要校验的链接。只放不是'主张来源'的链接——每加一条都要写明理由，否则这个名单会变成让 CI 变绿的垃圾桶。",
+  "ignoredLinks": [
+    {
+      "url": "https://creativecommons.org/licenses/by/4.0/deed.zh",
+      "reason": "许可证链接，说明授权方式，不支撑任何技术主张"
+    }
+  ],
+  "sources": [
+    {
+      "id": "setuptools-defaults",
+      "url": "https://setuptools.pypa.io/en/latest/userguide/miscellaneous.html",
+      "mustContain": ["tests/test*.py"],
+      "usedBy": ["第 1 条", "第 2 条"],
+      "claim": "默认进入 sdist 的测试文件只有 tests/test*.py，因此 tests/ 下的其他文件需要 MANIFEST.in"
+    },
+    {
+      "id": "pypi-trusted-publisher",
+      "url": "https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/",
+      "mustContain": ["before you actually publish to it", "octo-org/sampleproject"],
+      "usedBy": ["第 5 条", "第 6 条"],
+      "claim": "表单里的 Owner 是 GitHub 账号；pending publisher 不保留项目名，被别人注册即作废"
+    },
+    {
+      "id": "gh-release-edit",
+      "url": "https://cli.github.com/manual/gh_release_edit",
+      "mustContain": ["--notes-file"],
+      "usedBy": ["第 7 条"],
+      "claim": "gh release edit 支持 --notes-file，用 - 从 stdin 读，可绕开 PowerShell 的参数拆分"
+    },
+    {
+      "id": "powershell-parsing",
+      "url": "https://learn.microsoft.com/zh-cn/powershell/module/microsoft.powershell.core/about/about_parsing",
+      "mustContain": ["参数模式"],
+      "usedBy": ["第 7 条"],
+      "claim": "PowerShell 把参数拼成单个命令行字符串交给原生程序"
+    },
+    {
+      "id": "python-os-path",
+      "url": "https://docs.python.org/3/library/os.path.html",
+      "mustContain": ["normcase"],
+      "usedBy": ["第 4 条"],
+      "claim": "os.path.normcase 是把 Windows 路径归一化到可比较形式的官方手段"
+    }
+  ]
+}

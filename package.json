@@ -1,0 +1,14 @@
+{
+  "name": "ship-gotchas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "发开源项目时会踩的坑——你本地测不出来的那些。每条都附可自动校验的来源。",
+  "license": "CC-BY-4.0 AND MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node tools/check_sources.mjs"
+  }
+}
